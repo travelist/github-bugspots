@@ -1,0 +1,23 @@
+{
+  "name": "Github Bugspots",
+  "description": "This extension shows a ranking of the files which likely have bug code",
+  "version": "0.8.0",
+  "homepage_url": "https://github.com/travelist/github-bugspots",
+  "content_scripts": [{
+    "matches": ["https://github.com/*"],
+    "js": [
+      "bower_components/jquery/dist/jquery.min.js",
+      "bower_components/jsrender/jsrender.min.js",
+      "bower_components/github-api/lib/underscore-min.js",
+      "bower_components/github-api/github.js",
+      "github-bugspots.js"
+    ],
+    "run_at": "document_end",
+    "all_frames": false
+  }],
+  "web_accessible_resources": [
+    "templates/main.html",
+    "templates/button.html"
+  ],
+  "manifest_version": 2
+}
