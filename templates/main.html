@@ -1,23 +1,82 @@
-<div>
-  <table class="files js-navigation-container js-active-navigation-container" data-pjax>
-    <tbody>
-      <tr class="js-navigation-item">
-        <td class="icon">
-          <span class="octicon octicon-file-directory"></span>
-          <img alt="" class="spinner" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16">
-        </td>
-        <td class="content">
-          <span class="css-truncate css-truncate-target"><a href="/peter-murach/github/tree/master/features" class="js-directory-link js-navigation-open" id="9f034b63948763d489f944319c2eb3de-ae46b9cda834d30124d353b2ceddf1efd81de5f4" title="features">features</a></span>
-        </td>
-        <td class="message">
-          <span class="css-truncate css-truncate-target">
-            <a href="/peter-murach/github/commit/5da8ba021f42108cc441e98998826ec228d65436" class="message" data-pjax="true" title="Change emojis api to use new parser. Update docs.">Change emojis api to use new parser. Update docs.</a>
-          </span>
-        </td>
-        <td class="age">
-          <span class="css-truncate css-truncate-target"><time datetime="2014-07-27T17:08:56Z" is="time-ago" title="Jul 28, 2014, 2:08 AM GMT+9">a year ago</time></span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<script type="text/x-handlebars-template" id="mainTemplate">
+
+  <div class="boxed-group hooks-listing">
+    <span class="btn btn-sm btn-primary boxed-group-action" id="jsBugspotsSaveButton">
+      <span class="octicon octicon-pencil"></span>
+      <span>Save</span>
+    </span>
+    <h3>
+      <span class="octicon octicon-tools"></span>
+      Configurations
+    </h3>
+    <div class="boxed-group-inner">
+      <dl class="form">
+        <dt class="input-label">
+          <label for="bug_detection_regex">Bug Detection Regex
+            <span class="note">(the regular expression for counting the bug-related commits)</span></label>
+        </dt>
+        <dd>
+          <input autocomplete="off" class="long" id="bugspotsRegexField" name="bug_detection_regex" type="text" value="{{bugDetectionRegex}}">
+        </dd>
+      </dl>
+      <hr class="bleed-flush">
+      <dl class="form">
+        <dt class="input-label">
+          <label for="bugspots_access_token">
+            Access Token
+            <span class="note">(Follow<a href="https://github.com/settings/tokens/new" target="_blank"> this link </a>to create one and paste it below)
+            </span>
+          </label>
+        </dt>
+        <dd>
+          <input autocomplete="off" class="long" id="bugspotsTokenField" name="bugspots_access_token" type="text" value="{{accessToken}}">
+          <p class="note">
+            The access token is needed <b>to access private repository</b> or <b>to exceed the rate limit of unauthenticated requests</b>.
+            For more information, please refer to<a href="https://developer.github.com/v3/#rate-limiting"> this documentation</a>.
+          </p>
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="commit commit-tease js-details-container">
+    <p class="commit-title">
+      <span class="octicon octicon-beaker"></span>
+      <span class="message" data-pjax="true" title="Results">Results</span>
+    </p>
+    <div class="commit-meta" style="height: 31px">
+      <span class="sha-block" data-pjax="">Bug Score</span>
+      <div class="authorship" style="padding-left: inherit">Targets</div>
+    </div>
+  </div>
+
+  <div class="file-wrap">
+    <table class="files js-navigation-container js-active-navigation-container">
+      <tbody>
+        {{#each summary}}
+        <tr class="js-navigation-item">
+          <td class="icon">
+            <span class="octicon octicon-file-text"></span>
+            <img alt="" class="spinner" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16">
+          </td>
+          <td class="content">
+            <span class="css-truncate css-truncate-target">
+              <a href="/travelist/dependency-inspector/tree/master/bin" class="js-directory-link js-navigation-open" title="{{path}}">
+                {{path}}
+              </a>
+            </span>
+          </td>
+          <td class="age">
+            <span class="css-truncate css-truncate-target">
+              <a class="message" data-pjax="true" title="{{score}}">
+                {{score}}
+              </a>
+            </span>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+</script>

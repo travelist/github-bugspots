@@ -15,8 +15,8 @@
   "main": "github-bugspots.js",
   "dependencies": {
     "jquery": "~2.1.1",
-    "jsrender": "~1.0.0",
-    "github-api": "~0.10.0"
+    "handlebars": "~4.0.0",
+    "github-api": "0.10.6"
   },
   "license": "MIT",
   "ignore": [

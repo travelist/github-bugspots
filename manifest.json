@@ -7,7 +7,7 @@
     "matches": ["https://github.com/*"],
     "js": [
       "bower_components/jquery/dist/jquery.min.js",
-      "bower_components/jsrender/jsrender.min.js",
+      "bower_components/handlebars/handlebars.min.js",
       "bower_components/github-api/lib/underscore-min.js",
       "bower_components/github-api/github.js",
       "github-bugspots.js"
