@@ -47,7 +47,6 @@
   function renderMain(renderInfo) {
     renderInfo['bugDetectionRegex'] = bugDetectionRegexString;
     renderInfo['accessToken'] = accessToken;
-    console.log(renderInfo);
 
     return $.get(mainTemplateUrl, function (loadedHtml) {
       var templateHtmlString = $(loadedHtml).html();
@@ -75,7 +74,6 @@
     var files = _.filter(tree, function (i) {
       return i.type == "blob"
     });
-    console.log(files);
   }
 
   function getCommits() {
@@ -91,11 +89,9 @@
 
   function analyzeCommits(err, commits) {
     var info = [];
-    console.log(commits)
     var fix_commits = _.filter(commits, function (c) {
       return Boolean(c.commit.message.match(bugDetectionRegex));
     });
-    console.log(fix_commits);
     var oldestCommitTimestamp = (new Date(fix_commits[fix_commits.length - 1].commit.author.date)).getTime();
 
     $.each(fix_commits, function (i, v) {
@@ -109,7 +105,8 @@
         });
 
         $.each(files, function (i, v) {
-          info.push({path: v.path, url: v.url, timestamp: timestamp, score: score});
+          var blameUrl = 'https://github.com/'+userName+'/'+repoName+'/blame/master/'+ v.path;
+          info.push({path: v.path, url: blameUrl, timestamp: timestamp, score: score});
         });
 
       }).then(function (r) {
@@ -117,7 +114,6 @@
           var summary = {};
 
           $.each(info, function (i, v) {
-            console.log(v);
             if (v.path in summary) {
               summary[v.path].score += v.score;
             }
