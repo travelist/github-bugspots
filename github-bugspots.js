@@ -126,8 +126,11 @@
     _.each(fix_commits, function (v) {
       var p = new Promise(function(res, rej) {
         var relatedFilePaths = new Promise(function (resolve, reject) {
+          var _url = v.commit.tree.url + '?recursive=true';
+          var _token = localStorage.getItem('bugspots-access-token');
+          if (_token) _url += '&access_token=' + _token;
           $.ajax({
-            url: v.commit.tree.url + '?recursive=true',
+            url: _url,
             type: 'GET',
             success: resolve,
             error: reject
@@ -166,8 +169,8 @@
       $.each(summary, function (k, v) {
         summaryInfo.push({path: k, score: v.score, url: v.url})
       });
-      _.sortBy(summaryInfo, 'score');
-      renderRanking({summary: summaryInfo});
+      var sortedSummary = _.sortBy(summaryInfo, 'score').reverse();
+      renderRanking({summary: sortedSummary});
     });
   }
 
