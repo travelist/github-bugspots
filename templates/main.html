@@ -1,5 +1,4 @@
 <script type="text/x-handlebars-template" id="mainTemplate">
-
   <div class="boxed-group hooks-listing">
     <span class="btn btn-sm btn-primary boxed-group-action" id="jsBugspotsSaveButton">
       <span class="octicon octicon-pencil"></span>
@@ -14,9 +13,14 @@
         <dt class="input-label">
           <label for="bug_detection_regex">Bug Detection Regex
             <span class="note">(the regular expression for counting the bug-related commits)</span></label>
+          {{#if error }}
+            {{#if_eq errorType 'NoCommits'}}
+              <p><span class="note" style="color: #df3e3e">No commit messages are matched with this regular expression</span></p>
+            {{/if_eq}}
+          {{/if}}
         </dt>
         <dd>
-          <input autocomplete="off" class="long" id="bugspotsRegexField" name="bug_detection_regex" type="text" value="{{bugDetectionRegex}}">
+          <input autocomplete="off" class="long" id="bugspotsRegexField" name="bug_detection_regex" type="text" value="{{bugDetectionRegex}}" placeholder="[f|F]ix(es|ed)?|[C|c]lose(s|d)?]">
         </dd>
       </dl>
       <hr class="bleed-flush">
@@ -26,6 +30,11 @@
             Access Token
             <span class="note">(Follow<a href="https://github.com/settings/tokens/new" target="_blank"> this link </a>to create one and paste it below)
             </span>
+            {{#if error }}
+              {{#if_eq errorType '404'}}
+                <p><span class="note" style="color: #df3e3e">Error: Please Input Access Token below</span></p>
+              {{/if_eq}}
+            {{/if}}
           </label>
         </dt>
         <dd>
@@ -36,47 +45,16 @@
           </p>
         </dd>
       </dl>
+      <hr class="bleed-flush">
+      <dl class="form">
+        <p> For more details, questions, or requests, please visit<a href="https://github.com/travelist/github-bugspots"> this site </a>
+        and feel free to make github issues.</p>
+      </dl>
     </div>
   </div>
-
-  <div class="commit commit-tease js-details-container">
-    <p class="commit-title">
-      <span class="octicon octicon-beaker"></span>
-      <span class="message" data-pjax="true" title="Results">Results</span>
-    </p>
-    <div class="commit-meta" style="height: 31px">
-      <span class="sha-block" data-pjax="">Bug Score</span>
-      <div class="authorship" style="padding-left: inherit">Targets</div>
-    </div>
+  {{#unless error }}
+  <div style="text-align:center;" id="jsRankingResult">
+    <img alt="" class="mini-loader" height="128" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-128.gif">
   </div>
-
-  <div class="file-wrap">
-    <table class="files js-navigation-container js-active-navigation-container">
-      <tbody>
-        {{#each summary}}
-        <tr class="js-navigation-item">
-          <td class="icon">
-            <span class="octicon octicon-file-text"></span>
-            <img alt="" class="spinner" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16">
-          </td>
-          <td class="content">
-            <span class="css-truncate css-truncate-target">
-              <a href="{{ url }}" class="js-directory-link js-navigation-open" title="{{path}}">
-                {{path}}
-              </a>
-            </span>
-          </td>
-          <td class="age">
-            <span class="css-truncate css-truncate-target">
-              <a class="message" data-pjax="true" title="{{score}}">
-                {{score}}
-              </a>
-            </span>
-          </td>
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
-  </div>
-
+  {{/unless}}
 </script>

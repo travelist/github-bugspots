@@ -1,0 +1,40 @@
+<script type="text/x-handlebars-template" id="rankingTemplate">
+  <div class="commit commit-tease js-details-container">
+    <p class="commit-title">
+      <span class="octicon octicon-beaker"></span>
+      <span class="message" data-pjax="true" title="Results">Results</span>
+    </p>
+    <div class="commit-meta" style="height: 31px">
+      <span class="sha-block" data-pjax="">Bug Score</span>
+      <div class="authorship" style="padding-left: inherit">Targets</div>
+    </div>
+  </div>
+  <div class="file-wrap">
+    <table class="files js-navigation-container js-active-navigation-container">
+      <tbody>
+      {{#each summary}}
+      <tr class="js-navigation-item">
+        <td class="icon">
+          <span class="octicon octicon-file-text"></span>
+          <img alt="" class="spinner" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16">
+        </td>
+        <td class="content">
+          <span class="css-truncate css-truncate-target">
+            <a href="{{ url }}" class="js-directory-link js-navigation-open" title="{{path}}">
+              {{path}}
+            </a>
+          </span>
+        </td>
+        <td class="age">
+          <span class="css-truncate css-truncate-target">
+            <a class="message" data-pjax="true" title="{{score}}">
+              {{score}}
+            </a>
+          </span>
+        </td>
+      </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
+</script>

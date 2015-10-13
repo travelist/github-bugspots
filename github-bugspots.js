@@ -2,11 +2,12 @@
   'use strict';
 
   var mainTemplateUrl = chrome.extension.getURL('templates/main.html');
+  var rankingTemplateUrl = chrome.extension.getURL('templates/ranking.html');
   var buttonTemplateUrl = chrome.extension.getURL('templates/button.html');
-  var re = /^http[s]?:[/]+github.com[/]*([^/]*)\/([^/]*)[/|#]?.*$/;
+  var re = /^http[s]?:[/]+github.com[/]*([^/]*)\/([^/]*)[/]?.*$/;
   var parsedUrl = re.exec(location.href);
   var userName = parsedUrl[1];
-  var repoName = parsedUrl[2];
+  var repoName = parsedUrl[2].split('#')[0];
 
   /* currentTimestamp is used for calculation of score */
   var currentTimestamp = (new Date()).getTime();
@@ -26,6 +27,13 @@
 
   var repo = githubClient.getRepo(userName, repoName);
 
+  Handlebars.registerHelper('if_eq', function(a, b, opts) {
+    if(a == b)
+      return opts.fn(this);
+    else
+      return opts.inverse(this);
+  });
+
   function renderButton() {
     return $.get(buttonTemplateUrl, function (loadedHtml) {
       var templateHtmlString = $(loadedHtml).html();
@@ -34,8 +42,7 @@
       var bugspotsButton = $('.js-selected-navigation-item[aria-label=Bugspots]');
 
       bugspotsButton.click(selectNavigationItem);
-      //bugspotsButton.click(renderMain);
-      bugspotsButton.click(getCommits);
+      bugspotsButton.click(clickBugspotsButton);
 
       function selectNavigationItem() {
         $('.js-selected-navigation-item.selected').removeClass('selected');
@@ -45,15 +52,25 @@
   }
 
   function renderMain(renderInfo) {
+    var renderInfo = renderInfo || {};
     renderInfo['bugDetectionRegex'] = bugDetectionRegexString;
     renderInfo['accessToken'] = accessToken;
-
     return $.get(mainTemplateUrl, function (loadedHtml) {
       var templateHtmlString = $(loadedHtml).html();
       var template = Handlebars.compile(templateHtmlString);
       var resultHtmlString = template(renderInfo);
       $('#js-repo-pjax-container').html(resultHtmlString);
       activateJsEventHandler();
+    });
+  }
+
+  function renderRanking(renderInfo) {
+    var renderInfo = renderInfo || {};
+    return $.get(rankingTemplateUrl, function (loadedHtml) {
+      var templateHtmlString = $(loadedHtml).html();
+      var template = Handlebars.compile(templateHtmlString);
+      var resultHtmlString = template(renderInfo);
+      $('#jsRankingResult').replaceWith(resultHtmlString);
     });
   }
 
@@ -70,33 +87,44 @@
     });
   }
 
-  function renderSourceTable(err, tree) {
-    var files = _.filter(tree, function (i) {
-      return i.type == "blob"
-    });
-  }
+  function clickBugspotsButton() {
+    /*
+     * -- to debug --
+     * var _test = {
+     *  summary: [
+     *   { path: "buggy-text",
+     *     url: "https://...",
+     *     score: 0.1 }
+     * ]};
+     * renderMain(_test);
+     */
 
-  function getCommits() {
-    //var _test = {
-    //  summary: [
-    //    { path: "Gemfile", score: 0.00000614417460221472, url: "https://api.github.com/repos/travelist/dependency-inspector/git/blobs/8975a62227846f6aed69702e4ed982323bde707d" },
-    //    { path: "Gemfile", score: 0.00000614417460221472, url: "https://api.github.com/repos/travelist/dependency-inspector/git/blobs/8975a62227846f6aed69702e4ed982323bde707d" }
-    //  ]
-    //};
-    //renderMain(_test);
+    console.log('test');
+    renderMain({});
     repo.getCommits({'sha': 'master', 'perpage': 100}, analyzeCommits);
   }
 
   function analyzeCommits(err, commits) {
+    if (err) {
+      renderMain({error: true, errorType: '403'});
+      return;
+    }
+
     var info = [];
     var fix_commits = _.filter(commits, function (c) {
       return Boolean(c.commit.message.match(bugDetectionRegex));
     });
+
+    if (fix_commits.length == 0) {
+      renderMain({error: true, errorType: 'NoCommits'});
+      return;
+    }
+
     var oldestCommitTimestamp = (new Date(fix_commits[fix_commits.length - 1].commit.author.date)).getTime();
     var promiseList = [];
 
     _.each(fix_commits, function (v) {
-      var p = new Promise(function(resolve, reject) {
+      var p = new Promise(function(res, rej) {
         var relatedFilePaths = new Promise(function (resolve, reject) {
           $.ajax({
             url: v.commit.tree.url + '?recursive=true',
@@ -121,15 +149,14 @@
             });
           });
         }
-        relatedFilePaths.then(createRenderingInfo).then(resolve);
+        relatedFilePaths.then(createRenderingInfo).catch(function(err){
+        }).then(res);
       });
       promiseList.push(p);
     });
 
     Promise.all(promiseList).then(function(renderInfo) {
       var summary = {};
-      console.log(renderInfo);
-
       $.each(info, function (i, v) {
         if (v.path in summary) { summary[v.path].score += v.score; }
         else { summary[v.path] = v; }
@@ -140,7 +167,7 @@
         summaryInfo.push({path: k, score: v.score, url: v.url})
       });
       _.sortBy(summaryInfo, 'score');
-      renderMain({summary: summaryInfo});
+      renderRanking({summary: summaryInfo});
     });
   }
 
