@@ -99,7 +99,6 @@
      * renderMain(_test);
      */
 
-    console.log('test');
     renderMain({});
     repo.getCommits({'sha': 'master', 'perpage': 100}, analyzeCommits);
   }
