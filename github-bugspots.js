@@ -3,7 +3,7 @@
 
   var mainTemplateUrl = chrome.extension.getURL('templates/main.html');
   var buttonTemplateUrl = chrome.extension.getURL('templates/button.html');
-  var re = /^http[s]?:[/]+github.com[/]*([^/]*)\/([^/]*)[/|#].*$/;
+  var re = /^http[s]?:[/]+github.com[/]*([^/]*)\/([^/]*)[/|#]?.*$/;
   var parsedUrl = re.exec(location.href);
   var userName = parsedUrl[1];
   var repoName = parsedUrl[2];
@@ -93,52 +93,55 @@
       return Boolean(c.commit.message.match(bugDetectionRegex));
     });
     var oldestCommitTimestamp = (new Date(fix_commits[fix_commits.length - 1].commit.author.date)).getTime();
+    var promiseList = [];
 
-    $.each(fix_commits, function (i, v) {
-      $.get(v.commit.tree.url + '?recursive=true').then(function (r) {
-
-        var timestamp = (new Date(v.commit.author.date)).getTime();
-        var normalizedTimestamp = (timestamp - oldestCommitTimestamp) / currentTimestamp;
-        var score = 1 / (1 + Math.exp(12.0 * (1.0 - normalizedTimestamp)));
-        var files = _.filter(r.tree, function (t) {
-          return t.type == "blob"
+    _.each(fix_commits, function (v) {
+      var p = new Promise(function(resolve, reject) {
+        var relatedFilePaths = new Promise(function (resolve, reject) {
+          $.ajax({
+            url: v.commit.tree.url + '?recursive=true',
+            type: 'GET',
+            success: resolve,
+            error: reject
+          })
         });
 
-        $.each(files, function (i, v) {
-          var blameUrl = 'https://github.com/'+userName+'/'+repoName+'/blame/master/'+ v.path;
-          info.push({path: v.path, url: blameUrl, timestamp: timestamp, score: score});
-        });
-
-      }).then(function (r) {
-        if (i == fix_commits.length - 1) {
-          var summary = {};
-
-          $.each(info, function (i, v) {
-            if (v.path in summary) {
-              summary[v.path].score += v.score;
-            }
-            else {
-              summary[v.path] = v;
-            }
+        function createRenderingInfo(treeInfo) {
+          new Promise(function (resolve, reject) {
+            var timestamp = (new Date(v.commit.author.date)).getTime();
+            var normalizedTimestamp = (timestamp - oldestCommitTimestamp) / currentTimestamp;
+            var score = 1 / (1 + Math.exp(12.0 * (1.0 - normalizedTimestamp)));
+            var files = _.filter(treeInfo.tree, function (t) {
+              return t.type == "blob"
+            });
+            _.each(files, function (v) {
+              var blameUrl = 'https://github.com/' + userName + '/' + repoName + '/blame/master/' + v.path;
+              info.push({path: v.path, url: blameUrl, timestamp: timestamp, score: score});
+              resolve({path: v.path, url: blameUrl, timestamp: timestamp, score: score})
+            });
           });
-
-          var summaryInfo = [];
-          $.each(summary, function (k, v) {
-            summaryInfo.push({path: k, score: v.score, url: v.url})
-          });
-          _.sortBy(summaryInfo, 'score');
-          renderMain({summary: summaryInfo});
         }
+        relatedFilePaths.then(createRenderingInfo).then(resolve);
       });
+      promiseList.push(p);
     });
-  }
 
-  function _saveObject(key, obj) {
-    return localStorage.setItem(key, JSON.stringify(obj));
-  }
+    Promise.all(promiseList).then(function(renderInfo) {
+      var summary = {};
+      console.log(renderInfo);
 
-  function _getObject(key) {
-    return JSON.parse(localStorage.getItem(key));
+      $.each(info, function (i, v) {
+        if (v.path in summary) { summary[v.path].score += v.score; }
+        else { summary[v.path] = v; }
+      });
+
+      var summaryInfo = [];
+      $.each(summary, function (k, v) {
+        summaryInfo.push({path: k, score: v.score, url: v.url})
+      });
+      _.sortBy(summaryInfo, 'score');
+      renderMain({summary: summaryInfo});
+    });
   }
 
   function initialize() {
