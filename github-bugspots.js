@@ -126,6 +126,7 @@
           $.each(summary, function (k, v) {
             summaryInfo.push({path: k, score: v.score, url: v.url})
           });
+          _.sortBy(summaryInfo, 'score');
           renderMain({summary: summaryInfo});
         }
       });
