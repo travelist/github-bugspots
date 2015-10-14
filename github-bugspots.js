@@ -11,6 +11,7 @@
 
   /* currentTimestamp is used for calculation of score */
   var currentTimestamp = new Date().getTime();
+  var oldestCommitTimestamp = 0;
 
   /* bugDetectionRegex is used for judging whether given commits are bug fix or not */
   var bugDetectionRegexString = localStorage.getItem('bugspots-bug-detection-regex') || '[f|F]ix(es|ed)?|[C|c]lose(s|d)?]';
@@ -22,7 +23,7 @@
   var githubClient = new Github({
     apiUrl: 'https://api.github.com',
     token: accessToken,
-    auth: "oauth"
+    auth: 'oauth'
   });
 
   var repo = githubClient.getRepo(userName, repoName);
@@ -104,12 +105,10 @@
   }
 
   function analyzeCommits(err, commits) {
-    if (err) {
-      renderMain({error: true, errorType: '403'});
-      return;
-    }
+    var promiseList = [];
 
-    var info = [];
+    if (err) { renderMain({error: true, errorType: '403'}); return; }
+
     var fix_commits = _.filter(commits, function (c) {
       return Boolean(c.commit.message.match(bugDetectionRegex));
     });
@@ -119,57 +118,52 @@
       return;
     }
 
-    var oldestCommitTimestamp = (new Date(fix_commits[fix_commits.length - 1].commit.author.date)).getTime();
-    var promiseList = [];
+    oldestCommitTimestamp = (new Date(fix_commits[fix_commits.length - 1].commit.author.date)).getTime();
 
     _.each(fix_commits, function (v) {
       var p = new Promise(function(res, rej) {
-        var relatedFilePaths = new Promise(function (resolve, reject) {
-          var _url = v.commit.tree.url + '?recursive=true';
-          var _token = localStorage.getItem('bugspots-access-token');
-          if (_token) _url += '&access_token=' + _token;
-          $.ajax({
-            url: _url,
-            type: 'GET',
-            success: resolve,
-            error: reject
-          })
-        });
-
-        function createRenderingInfo(treeInfo) {
-          new Promise(function (resolve, reject) {
-            var timestamp = (new Date(v.commit.author.date)).getTime();
-            var normalizedTimestamp = (currentTimestamp - oldestCommitTimestamp) / (currentTimestamp - timestamp);
-            var score = 1 / (1 + Math.exp(12.0 * (1.0 - normalizedTimestamp)));
-            var files = _.filter(treeInfo.tree, function (t) {
-              return t.type == "blob"
-            });
-            _.each(files, function (v) {
-              var blameUrl = 'https://github.com/' + userName + '/' + repoName + '/blame/master/' + v.path;
-              info.push({path: v.path, url: blameUrl, timestamp: timestamp, score: score});
-              resolve({path: v.path, url: blameUrl, timestamp: timestamp, score: score})
-            });
-          });
-        }
-        relatedFilePaths.then(createRenderingInfo).catch(function(err){
-        }).then(res);
+        getCommit(repoName, userName, v.sha)
+          .then(createRenderingInfo)
+          .then(res);
       });
       promiseList.push(p);
     });
 
     Promise.all(promiseList).then(function(renderInfo) {
       var summary = {};
-      $.each(info, function (i, v) {
+      _.each(renderInfo, function (v) {
         if (v.path in summary) { summary[v.path].score += v.score; }
         else { summary[v.path] = v; }
       });
 
       var summaryInfo = [];
       $.each(summary, function (k, v) {
-        summaryInfo.push({path: k, score: v.score, url: v.url})
+        summaryInfo.push({path: k, score: v.score.toFixed(4), url: v.url})
       });
       var sortedSummary = _.sortBy(summaryInfo, 'score').reverse();
       renderRanking({summary: sortedSummary});
+    });
+  }
+
+  function getCommit(repo, owner, sha) {
+    return new Promise(function(resolve, reject) {
+      var _url = 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha;
+      var _token = localStorage.getItem('bugspots-access-token');
+      if (_token) _url += '?access_token=' + _token;
+      $.ajax({ url: _url, type: 'GET', success: resolve, error: reject })
+    });
+  }
+
+  function createRenderingInfo(commitInfo) {
+    return new Promise(function (resolve, reject) {
+      var timestamp = (new Date(commitInfo.commit.author.date)).getTime();
+      var normalizedTimestamp = (currentTimestamp - oldestCommitTimestamp) / (currentTimestamp - timestamp);
+      var score = 1 / (1 + Math.exp(12.0 * (1.0 - normalizedTimestamp)));
+
+      _.each(commitInfo.files, function (f) {
+        var blameUrl = 'https://github.com/' + userName + '/' + repoName + '/blame/master/' + f.filename;
+        resolve({path: f.filename, url: blameUrl, timestamp: timestamp, score: score})
+      });
     });
   }
 
