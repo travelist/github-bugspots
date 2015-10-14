@@ -10,7 +10,7 @@
   var repoName = parsedUrl[2].split('#')[0];
 
   /* currentTimestamp is used for calculation of score */
-  var currentTimestamp = (new Date()).getTime();
+  var currentTimestamp = new Date().getTime();
 
   /* bugDetectionRegex is used for judging whether given commits are bug fix or not */
   var bugDetectionRegexString = localStorage.getItem('bugspots-bug-detection-regex') || '[f|F]ix(es|ed)?|[C|c]lose(s|d)?]';
@@ -139,7 +139,7 @@
         function createRenderingInfo(treeInfo) {
           new Promise(function (resolve, reject) {
             var timestamp = (new Date(v.commit.author.date)).getTime();
-            var normalizedTimestamp = (timestamp - oldestCommitTimestamp) / currentTimestamp;
+            var normalizedTimestamp = (currentTimestamp - oldestCommitTimestamp) / (currentTimestamp - timestamp);
             var score = 1 / (1 + Math.exp(12.0 * (1.0 - normalizedTimestamp)));
             var files = _.filter(treeInfo.tree, function (t) {
               return t.type == "blob"
