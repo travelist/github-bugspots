@@ -1,0 +1,9 @@
+machine:
+  timezone:
+    Asia/Tokyo
+  node:
+    version: 4.1.0
+
+test:
+  pre:
+    - eslint github-bugspots.js

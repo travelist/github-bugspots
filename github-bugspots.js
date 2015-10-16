@@ -4,6 +4,8 @@
   var mainTemplateUrl = chrome.extension.getURL('templates/main.html');
   var rankingTemplateUrl = chrome.extension.getURL('templates/ranking.html');
   var buttonTemplateUrl = chrome.extension.getURL('templates/button.html');
+  var graphButton = $('.tooltipped.tooltipped-w[aria-label=Graphs]');
+  var bugspotsButton = $('.js-selected-navigation-item[aria-label=Bugspots]');
   var re = /^http[s]?:[/]+github.com[/]*([^/]*)\/([^/]*)[/]?.*$/;
   var parsedUrl = re.exec(location.href);
   var userName = parsedUrl[1];
@@ -35,42 +37,40 @@
       return opts.inverse(this);
   });
 
+  function selectNavigationItem() {
+    $('.js-selected-navigation-item.selected').removeClass('selected');
+    bugspotsButton.addClass('selected');
+  }
+
   function renderButton() {
     return $.get(buttonTemplateUrl, function (loadedHtml) {
       var templateHtmlString = $(loadedHtml).html();
-      $('.tooltipped.tooltipped-w[aria-label=Graphs]').parent().append(templateHtmlString);
-
-      var bugspotsButton = $('.js-selected-navigation-item[aria-label=Bugspots]');
-
+      graphButton.parent().append(templateHtmlString);
+      bugspotsButton = $('.js-selected-navigation-item[aria-label=Bugspots]');
       bugspotsButton.click(selectNavigationItem);
       bugspotsButton.click(clickBugspotsButton);
-
-      function selectNavigationItem() {
-        $('.js-selected-navigation-item.selected').removeClass('selected');
-        bugspotsButton.addClass('selected');
-      }
     });
   }
 
   function renderMain(renderInfo) {
-    var renderInfo = renderInfo || {};
-    renderInfo['bugDetectionRegex'] = bugDetectionRegexString;
-    renderInfo['accessToken'] = accessToken;
+    var templateInfo = renderInfo || {};
+    templateInfo['bugDetectionRegex'] = bugDetectionRegexString;
+    templateInfo['accessToken'] = accessToken;
     return $.get(mainTemplateUrl, function (loadedHtml) {
       var templateHtmlString = $(loadedHtml).html();
       var template = Handlebars.compile(templateHtmlString);
-      var resultHtmlString = template(renderInfo);
+      var resultHtmlString = template(templateInfo);
       $('#js-repo-pjax-container').html(resultHtmlString);
       activateJsEventHandler();
     });
   }
 
   function renderRanking(renderInfo) {
-    var renderInfo = renderInfo || {};
+    var templateInfo = renderInfo || {};
     return $.get(rankingTemplateUrl, function (loadedHtml) {
       var templateHtmlString = $(loadedHtml).html();
       var template = Handlebars.compile(templateHtmlString);
-      var resultHtmlString = template(renderInfo);
+      var resultHtmlString = template(templateInfo);
       $('#jsRankingResult').replaceWith(resultHtmlString);
     });
   }
@@ -121,7 +121,7 @@
     oldestCommitTimestamp = (new Date(fix_commits[fix_commits.length - 1].commit.author.date)).getTime();
 
     _.each(fix_commits, function (v) {
-      var p = new Promise(function(res, rej) {
+      var p = new Promise(function(res, _rej) {
         getCommit(repoName, userName, v.sha)
           .then(createRenderingInfo)
           .then(res);
@@ -155,7 +155,7 @@
   }
 
   function createRenderingInfo(commitInfo) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve, _reject) {
       var timestamp = (new Date(commitInfo.commit.author.date)).getTime();
       var normalizedTimestamp = (currentTimestamp - oldestCommitTimestamp) / (currentTimestamp - timestamp);
       var score = 1 / (1 + Math.exp(12.0 * (1.0 - normalizedTimestamp)));

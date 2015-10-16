@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "indent": [2, 2],
+    "quotes": [2, "single"],
+    "linebreak-style": [2, "unix"],
+    "no-unused-vars": [2, {"args": "after-used", "argsIgnorePattern": "^_"}]
+  },
+  "env": {
+    "browser": true
+  },
+  "extends": "eslint:recommended",
+  "globals": {
+    "chrome": 1,
+    "_": 1,
+    "$": 1,
+    "Github": 1,
+    "Handlebars": 1
+  }
+}
