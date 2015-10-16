@@ -6,4 +6,5 @@ machine:
 
 test:
   pre:
+    - npm install -g eslint
     - eslint github-bugspots.js
