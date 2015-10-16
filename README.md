@@ -1,7 +1,7 @@
 # github-bugspots [![Circle CI](https://circleci.com/gh/travelist/github-bugspots.svg?style=svg)](https://circleci.com/gh/travelist/github-bugspots)
 Browser plugin for predicting bug codes from Github repository, based on the Google's blog post: [Bug Prediction at Google](http://google-engtools.blogspot.jp/2011/12/bug-prediction-at-google.html)
 
-![Alt text](https://raw.githubusercontent.com/travelist/github-bugspots/master/doc/demo.png?token=ADABCfeVsyE-lYJFi6j-8y_D3wdSdXMxks5WJmGtwA%3D%3D "github-bugspots demo")
+![Alt text](https://raw.githubusercontent.com/travelist/github-bugspots/master/doc/bugspots-demo.gif "github-bugspots demo")
 
 ### Installatoin
 
