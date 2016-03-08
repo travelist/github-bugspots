@@ -1,7 +1,7 @@
 {
   "name": "Github Bugspots",
   "description": "Show a list of ranked files which likely have bugs",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "homepage_url": "https://github.com/travelist/github-bugspots",
   "content_scripts": [{
     "matches": ["https://github.com/*"],

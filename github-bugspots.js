@@ -4,7 +4,7 @@
   var mainTemplateUrl = chrome.extension.getURL('templates/main.html');
   var rankingTemplateUrl = chrome.extension.getURL('templates/ranking.html');
   var buttonTemplateUrl = chrome.extension.getURL('templates/button.html');
-  var graphButton = $('.tooltipped.tooltipped-w[aria-label=Graphs]');
+  var graphButton = $('.js-selected-navigation-item.reponav-item').last();
   var bugspotsButton = $('.js-selected-navigation-item[aria-label=Bugspots]');
   var re = /^http[s]?:[/]+github.com[/]*([^/]*)\/([^/]*)[/]?.*$/;
   var parsedUrl = re.exec(location.href);
@@ -46,7 +46,7 @@
     return $.get(buttonTemplateUrl, function (loadedHtml) {
       var templateHtmlString = $(loadedHtml).html();
       graphButton.parent().append(templateHtmlString);
-      bugspotsButton = $('.js-selected-navigation-item[aria-label=Bugspots]');
+      bugspotsButton = $('#bugspotNavItem');
       bugspotsButton.click(selectNavigationItem);
       bugspotsButton.click(clickBugspotsButton);
     });
@@ -60,7 +60,7 @@
       var templateHtmlString = $(loadedHtml).html();
       var template = Handlebars.compile(templateHtmlString);
       var resultHtmlString = template(templateInfo);
-      $('#js-repo-pjax-container').html(resultHtmlString);
+      $('#js-repo-pjax-container > .container').html(resultHtmlString);
       activateJsEventHandler();
     });
   }
@@ -172,4 +172,5 @@
   }
 
   initialize();
+
 })();
