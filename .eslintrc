@@ -13,6 +13,7 @@
     "chrome": 1,
     "_": 1,
     "$": 1,
+    "Promise": 1,
     "Github": 1,
     "Handlebars": 1
   }
